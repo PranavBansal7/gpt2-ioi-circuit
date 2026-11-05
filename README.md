@@ -134,7 +134,7 @@ Where $0.0$ indicates corrupted-level performance and $1.0$ indicates complete r
 Path patching measures information transferred along a specific edge $u \to v$ in the computational graph.
 To evaluate the edge from sender head $h_s$ to the final residual stream, all downstream attention heads are frozen to their clean cache activations $z_{\text{clean}}$, while sender $h_s$ is patched from the corrupted cache:
 
-$$\text{Effect}(h_s \to \text{resid\_post}) = \frac{\mathcal{M}_{\text{IOI}}(x_{\text{clean}} \mid z^{l_s, h_s} \leftarrow z_{\text{corrupt}}^{l_s, h_s}, \; z^{\text{downstream}} \leftarrow z_{\text{clean}}^{\text{downstream}}) - \mathcal{M}_{\text{clean}}}{\mathcal{M}_{\text{clean}} - \mathcal{M}_{\text{corrupt}}}$$
+$$\text{Effect}(h_s \to \text{resid}_{\text{post}}) = \frac{\mathcal{M}_{\text{IOI}}(x_{\text{clean}} \mid z^{l_s, h_s} \leftarrow z_{\text{corrupt}}^{l_s, h_s}, \, z^{\text{downstream}} \leftarrow z_{\text{clean}}^{\text{downstream}}) - \mathcal{M}_{\text{IOI}}(x_{\text{clean}})}{\mathcal{M}_{\text{IOI}}(x_{\text{clean}}) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}$$
 
 This cleanly separates heads that write directly to the logits (e.g. L9H9: $-0.9217$) from intermediate routing heads that only affect downstream attention patterns.
 

@@ -191,8 +191,8 @@ This unmasks backup heads (e.g. L10H10: $21.24\%$) and proves the strict causal 
 ### 1. Installation
 Clone the repository and install the dependencies:
 ```bash
-git clone https://github.com/PranavBansal7/gpt2-ioi-circuit-interpretability.git
-cd gpt2-ioi-circuit-interpretability
+git clone https://github.com/PranavBansal7/gpt2-ioi-circuit.git
+cd gpt2-ioi-circuit
 pip install -r requirements.txt
 ```
 

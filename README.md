@@ -6,7 +6,7 @@
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An end-to-end mechanistic interpretability research suite reverse-engineering the **26-head Indirect Object Identification (IOI) circuit** in **117M-parameter GPT-2 Small** (12 layers, 12 heads/layer, $`d_{\text{model}} = 768`$, $`d_{\text{head}} = 64`$, $`d_{\text{vocab}} = 50,257`$) from first principles.
+An end-to-end mechanistic interpretability research suite reverse-engineering the **26-head Indirect Object Identification (IOI) circuit** in **117M-parameter GPT-2 Small** (12 layers, 12 heads/layer, $d_{\text{model}} = 768, d_{\text{head}} = 64, d_{\text{vocab}} = 50,257$) from first principles.
 
 Replicating and extending the foundational interpretability framework established by Wang et al. ([2022](https://arxiv.org/abs/2211.00593)), this repository provides an empirical and mathematical dissection of the complete computational graph executing indirect object resolution. The pipeline demonstrates how low-level attention mechanisms systematically identify name duplicates, inhibit repeated subject representations, and project the indirect object directly into the vocabulary unembedding space through **Direct Logit Attribution (DLA)**, **residual activation patching**, **head-component decomposition**, **causal path patching**, **unembedding writing-direction projections**, **Output-Value (OV) copying scores**, **template-conditional mean ablation**, and **conditional minimality scoring**.
 
@@ -103,19 +103,23 @@ All metrics are quantitatively evaluated using GPT-2 Small (`gpt2-small`) inside
 ## Theoretical Formulations
 
 ### 1. Task Logit Difference Metric
-Let $`x \in \mathcal{V}^N`$ denote a sequence of token IDs of context length $N$. Let $`y_{\text{IO}}, y_{\text{S}} \in \mathcal{V}`$ denote the correct indirect object token and the incorrect repeated subject token respectively. The model logit difference at sequence termination $N$ is:
+Let $x \in \mathcal{V}^N$ denote a sequence of token IDs of context length $N$. Let $y_{\text{IO}}, y_{\text{S}} \in \mathcal{V}$ denote the correct indirect object token and the incorrect repeated subject token respectively. The model logit difference at sequence termination $N$ is:
 
 $$
 \mathcal{M}_{\text{IOI}}(x) = \ell(x)_N[y_{\text{IO}}] - \ell(x)_N[y_{\text{S}}]
 $$
 
-where $`\ell(x)_N = W_U \cdot \operatorname{LN}_{\text{final}}(r_N)`$ represents the unembedded logit vector from final residual stream $`r_N \in \mathbb{R}^{d_{\text{model}}}`$.
+where the unembedded logit vector from final residual stream $r_N \in \mathbb{R}^{d_{\text{model}}}$ is:
+
+$$
+\ell(x)_N = W_U \cdot \text{LN}_{\text{final}}(r_N)
+$$
 
 ### 2. Direct Logit Attribution (DLA)
 The final residual stream is the additive sum of initial embeddings and all attention and MLP outputs across layers $l \in [0, L-1]$:
 
 $$
-r_N = r_0 + \sum_{l=0}^{L-1} \left( \sum_{h=0}^{H-1} z_N^{l,h} \, W_O^{l,h} + \operatorname{MLP}^l(r_N^l) \right)
+r_N = r_0 + \sum_{l=0}^{L-1} \left( \sum_{h=0}^{H-1} z_N^{l,h} \, W_O^{l,h} + \text{MLP}^l(r_N^l) \right)
 $$
 
 Defining the prompt-specific unembedding difference direction:
@@ -127,26 +131,26 @@ $$
 Each individual head $(l, h)$'s direct linear attribution to the IO-vs-S margin is:
 
 $$
-\operatorname{DLA}(l, h) = \left( \operatorname{LN-scale}_N \odot \left( z_N^{l,h} \, W_O^{l,h} \right) \right)^T d_{\text{diff}}
+\text{DLA}(l, h) = \left( \text{LN-scale}_N \odot \left( z_N^{l,h} \, W_O^{l,h} \right) \right)^T d_{\text{diff}}
 $$
 
 Summing across all components reconstructs the true model logit difference with exact precision (+3.551880).
 
 ### 3. Normalized Causal Activation Patching
-To test the causal necessity and sufficiency of activation $a^{l,h}$ at position $p$, we run corrupted inputs $`x_{\text{corrupt}}`$ (where subject names are swapped) while substituting clean activations $`a_{\text{clean}}^{l,h}[p]`$ via hook intervention:
+To test the causal necessity and sufficiency of activation $a^{l,h}$ at position $p$, we run corrupted inputs $x_{\text{corrupt}}$ (where subject names are swapped) while substituting clean activations $a_{\text{clean}}^{l,h}[p]$ via hook intervention:
 
 $$
-\operatorname{Recovery}(a^{l,h}[p]) = \frac{\mathcal{M}_{\text{IOI}}(x_{\text{corrupt}} \mid a^{l,h}[p] \leftarrow a_{\text{clean}}^{l,h}[p]) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}{\mathcal{M}_{\text{IOI}}(x_{\text{clean}}) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}
+\text{Recovery}(a^{l,h}[p]) = \frac{\mathcal{M}_{\text{IOI}}(x_{\text{corrupt}} \mid a^{l,h}[p] \leftarrow a_{\text{clean}}^{l,h}[p]) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}{\mathcal{M}_{\text{IOI}}(x_{\text{clean}}) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}
 $$
 
 Where 0.0 indicates corrupted-level performance and 1.0 indicates complete recovery of clean model capability.
 
 ### 4. Causal Path Patching
 Path patching measures information transferred along a specific edge $u \to v$ in the computational graph.
-To evaluate the edge from sender head $h_s$ to the final residual stream, all downstream attention heads are frozen to their clean cache activations $`z_{\text{clean}}`$, while sender $h_s$ is patched from the corrupted cache:
+To evaluate the edge from sender head $h_s$ to the final residual stream, all downstream attention heads are frozen to their clean cache activations $z_{\text{clean}}$, while sender $h_s$ is patched from the corrupted cache:
 
 $$
-\operatorname{Effect}(h_s \to \operatorname{resid}_{\text{post}}) = \frac{\mathcal{M}_{\text{IOI}}(x_{\text{clean}} \mid z^{l_s, h_s} \leftarrow z_{\text{corrupt}}^{l_s, h_s}, \, z^{\text{downstream}} \leftarrow z_{\text{clean}}^{\text{downstream}}) - \mathcal{M}_{\text{IOI}}(x_{\text{clean}})}{\mathcal{M}_{\text{IOI}}(x_{\text{clean}}) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}
+\text{Effect}(h_s \to \text{resid}_{\text{post}}) = \frac{\mathcal{M}_{\text{IOI}}(x_{\text{clean}} \mid z^{l_s, h_s} \leftarrow z_{\text{corrupt}}^{l_s, h_s}, \, z^{\text{downstream}} \leftarrow z_{\text{clean}}^{\text{downstream}}) - \mathcal{M}_{\text{IOI}}(x_{\text{clean}})}{\mathcal{M}_{\text{IOI}}(x_{\text{clean}}) - \mathcal{M}_{\text{IOI}}(x_{\text{corrupt}})}
 $$
 
 This cleanly separates heads that write directly to the logits (e.g. L9H9: -0.9217) from intermediate routing heads that only affect downstream attention patterns.
@@ -155,10 +159,10 @@ This cleanly separates heads that write directly to the logits (e.g. L9H9: -0.92
 For a candidate name-mover head, the isolated transformation mapping an input token representation through the OV circuit to the output logits is:
 
 $$
-T_{\text{OV}}^{l,h} = W_U \cdot \operatorname{LN}_{\text{final}} \left( (W_E + \operatorname{MLP}_0) \cdot W_V^{l,h} \, W_O^{l,h} \right)
+T_{\text{OV}}^{l,h} = W_U \cdot \text{LN}_{\text{final}} \left( (W_E + \text{MLP}_0) \cdot W_V^{l,h} \, W_O^{l,h} \right)
 $$
 
-Evaluating whether the input token is predicted among the top-$`k`$ ($`k=5`$) logits under $`+W_{\text{OV}}`$ verifies positive name movers (L9H9: 100%, L9H6: 94.5%). Testing under $`-W_{\text{OV}}`$ exposes negative name movers (L10H7: 100%, L11H10: 100%) that mathematically compute anti-copying.
+Evaluating whether the input token is predicted among the top-5 ($k=5$) logits under $+W_{\text{OV}}$ verifies positive name movers (L9H9: 100%, L9H6: 94.5%). Testing under $-W_{\text{OV}}$ exposes negative name movers (L10H7: 100%, L11H10: 100%) that mathematically compute anti-copying.
 
 ### 6. Template-Conditional Mean Ablation & Minimality Scoring
 Let $\mathcal{C}$ denote the 26-head circuit candidate and $\mathcal{K} \subset \mathcal{C}$ denote a subset of related parallel heads. All heads $(l, h) \notin \mathcal{C}$ are ablated by substituting their output with the empirical mean activation computed over an uncorrelated ABC reference dataset grouped by prompt template:

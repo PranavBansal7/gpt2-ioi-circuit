@@ -1,0 +1,30 @@
+{
+  "baseline_and_dla": {
+    "baseline_logit_diff": 3.551880359649658,
+    "DLA_L9H9": 2.98544979095459,
+    "DLA_L9H6": 1.384495496749878,
+    "DLA_L10H0": 0.5608727335929871,
+    "DLA_L10H7": -1.8986520767211914,
+    "DLA_L11H10": -0.9702396392822266
+  },
+  "s_inhibition_components": {
+    "L8H6_v_recovery": 0.31717124581336975,
+    "L8H6_pattern_recovery": 0.009585428051650524,
+    "L5H5_pattern_recovery": 0.3435089886188507,
+    "L5H5_v_recovery": -5.470656105899252e-05
+  },
+  "copying_projections": {
+    "L9H9_io_attn_mean": 0.8169803023338318,
+    "L9H9_io_proj_mean": 66.32804870605469,
+    "L9H9_pearson_r": 0.6387083530426025,
+    "L11H10_io_attn_mean": 0.6424992680549622,
+    "L11H10_io_proj_mean": -33.849639892578125,
+    "L11H10_pearson_r": -0.651729941368103
+  },
+  "minimal_circuit": {
+    "full_model_score": 3.7706894874572754,
+    "circuit_score": 1.2376317977905273,
+    "abc_baseline_score": -0.30907708406448364,
+    "circuit_retention_pct": 37.91170045491319
+  }
+}

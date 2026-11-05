@@ -1,0 +1,178 @@
+{
+  "task": "Indirect Object Identification (IOI)",
+  "model": "gpt2-small",
+  "d_model": 768,
+  "n_layers": 12,
+  "n_heads": 12,
+  "d_head": 64,
+  "vocab_size": 50257,
+  "author": "Pranav Bansal",
+  "baseline_metrics": {
+    "clean_mean_logit_diff": 3.55188,
+    "corrupted_mean_logit_diff": -3.55188,
+    "abc_mean_logit_diff": -0.343855,
+    "reconstructed_resid_post_logit_diff": 3.55188
+  },
+  "direct_logit_attribution": {
+    "top_positive_heads": {
+      "L9H9": 2.98545,
+      "L9H6": 1.3845,
+      "L10H0": 0.56087,
+      "L10H10": 0.48022,
+      "L8H10": 0.28961,
+      "L10H6": 0.28827,
+      "L7H9": 0.18326,
+      "L10H1": 0.17083,
+      "L7H3": 0.13493
+    },
+    "top_negative_heads": {
+      "L10H7": -1.89865,
+      "L11H10": -0.97024,
+      "L11H2": -0.38791,
+      "L8H6": -0.08272,
+      "L11H6": -0.08056
+    }
+  },
+  "residual_stream_activation_patching": {
+    "s2_position_recovery": {
+      "L00": 1.0,
+      "L02": 1.0011,
+      "L04": 0.9949,
+      "L06": 0.9675,
+      "L07": 0.9228,
+      "L08": 0.6565
+    },
+    "end_position_recovery": {
+      "L09": 0.9384,
+      "L10": 1.0048,
+      "L11": 0.9914
+    }
+  },
+  "head_activation_patching": {
+    "top_positive_heads": {
+      "L5H5": 0.3435,
+      "L8H6": 0.3186,
+      "L8H10": 0.2779,
+      "L9H9": 0.2636,
+      "L7H9": 0.1922,
+      "L6H9": 0.1303,
+      "L7H3": 0.1243,
+      "L3H0": 0.1163
+    },
+    "top_negative_heads": {
+      "L10H7": -0.4799,
+      "L11H10": -0.2782,
+      "L11H2": -0.1135
+    }
+  },
+  "head_component_patching": {
+    "s_inhibition_value_dominance": {
+      "L8H6": {"v": 0.3172, "pattern": 0.0103, "q": 0.0113, "k": 0.0, "z": 0.3186},
+      "L8H10": {"v": 0.2731, "pattern": -0.011, "q": -0.0284, "k": -0.0256, "z": 0.2779},
+      "L7H9": {"v": 0.2079, "pattern": 0.0079, "q": -0.0003, "k": 0.0056, "z": 0.1922},
+      "L7H3": {"v": 0.1332, "pattern": -0.0033, "q": -0.0011, "k": 0.0001, "z": 0.1243}
+    },
+    "induction_pattern_dominance": {
+      "L5H5": {"pattern": 0.3444, "q": 0.3438, "v": -0.0003, "z": 0.3435},
+      "L6H9": {"pattern": 0.1301, "q": 0.1301, "v": -0.0002, "z": 0.1303}
+    },
+    "name_mover_pattern_dominance": {
+      "L9H9": {"pattern": 0.2774, "q": 0.2786, "v": -0.009, "z": 0.2636}
+    }
+  },
+  "path_patching": {
+    "direct_to_final_resid": {
+      "L9H9": -0.9217,
+      "L9H6": -0.4008,
+      "L10H0": -0.1679,
+      "L10H10": -0.1378,
+      "L10H6": -0.0767,
+      "L8H10": -0.073,
+      "L10H7_inhibitory": 0.5408,
+      "L11H10_inhibitory": 0.2782
+    },
+    "senders_into_s_inhibition_value": {
+      "L5H5": -0.3395,
+      "L6H9": -0.1289,
+      "L3H0": -0.1186,
+      "L6H0": -0.0483,
+      "L4H3": -0.0288
+    }
+  },
+  "writing_direction_projections": {
+    "L9H9_positive_name_mover": {
+      "attn_mean": 0.817,
+      "proj_mean": 66.328,
+      "pearson_r": 0.6387
+    },
+    "L11H10_negative_name_mover": {
+      "attn_mean": 0.6425,
+      "proj_mean": -33.8496,
+      "pearson_r": -0.6517
+    }
+  },
+  "ov_copying_scores": {
+    "positive_name_movers": {
+      "L9H9": 1.0,
+      "L10H0": 0.945,
+      "L9H6": 0.945,
+      "group_mean": 0.9633
+    },
+    "negative_name_movers_anti_copy": {
+      "L10H7": 1.0,
+      "L11H10": 1.0,
+      "group_mean": 1.0
+    }
+  },
+  "early_head_validation": {
+    "previous_token_attention": {
+      "L4H11": 0.98917,
+      "L2H2": 0.48523
+    },
+    "duplicate_token_attention": {
+      "L0H5": 0.6446,
+      "L3H0": 0.63012,
+      "L0H1": 0.26324
+    },
+    "induction_attention": {
+      "L5H5": 0.92787,
+      "L6H9": 0.91399,
+      "L5H1": 0.9108,
+      "L7H10": 0.90882,
+      "L7H2": 0.83503
+    }
+  },
+  "minimal_circuit_mean_ablation": {
+    "full_model_score": 3.55188,
+    "circuit_score": 2.971167,
+    "abc_baseline_score": -0.343855,
+    "circuit_retention_pct": 85.1,
+    "circuit_heads_count": 26,
+    "total_model_heads": 144
+  },
+  "minimality_scores": {
+    "per_category_means": {
+      "negative_name_mover": 0.39646,
+      "previous_token": 0.25136,
+      "induction": 0.21414,
+      "duplicate_token": 0.20611,
+      "s2_inhibition": 0.15704,
+      "name_mover": 0.1208,
+      "backup_name_mover": 0.05815
+    },
+    "top_individual_heads": {
+      "L10H7": 0.42367,
+      "L11H10": 0.36924,
+      "L4H11": 0.31353,
+      "L5H5": 0.29289,
+      "L0H1": 0.29227,
+      "L5H9": 0.25551,
+      "L8H6": 0.24698,
+      "L8H10": 0.21421,
+      "L0H10": 0.21307,
+      "L10H10": 0.21238,
+      "L6H9": 0.20731,
+      "L2H2": 0.1892
+    }
+  }
+}
